@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket         = "edo-tf-state"
+    key            = "terraform.tfstate"
+    region         = "ap-southeast-1"
+    dynamodb_table = "edo-tf-locks"
+    encrypt        = true
+  }
+}
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
