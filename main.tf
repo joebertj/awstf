@@ -26,3 +26,42 @@ module "vpc" {
     Environment = "dev"
   }
 }
+
+module "kubernetes" {
+  source = "scholzj/kubernetes/aws"
+
+  aws_region           = "ap-southeast-1"
+  cluster_name         = "edo-k8s"
+  master_instance_type = "t2.medium"
+  worker_instance_type = "t2.medium"
+  ssh_public_key       = "~/.ssh/id_rsa.pub"
+  ssh_access_cidr      = ["0.0.0.0/0"]
+  api_access_cidr      = ["0.0.0.0/0"]
+  min_worker_count     = 3
+  max_worker_count     = 6
+  hosted_zone          = "kenchlightyear.com"
+  hosted_zone_private  = false
+
+  master_subnet_id = module.vpc.public_subnets[0]
+  worker_subnet_ids = module.vpc.private_subnets
+
+  tags = {
+    Application = "AWS-Kubernetes"
+  }
+
+  tags2 = [
+    {
+      key                 = "Application"
+      value               = "AWS-Kubernetes"
+      propagate_at_launch = true
+    },
+  ]
+
+  addons = [
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/storage-class.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/metrics-server.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/dashboard.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/external-dns.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/autoscaler.yaml",
+  ]
+}
